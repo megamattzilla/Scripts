@@ -8,6 +8,7 @@
 #variables 
 local=/shared/tmp/local-diff.txt  #local file location
 remote=/shared/tmp/remote-diff.txt #remote file location 
+wait=10
 
 #sanity check for required arguments 1-3  
 if [ -z "$1" ] && [ -z "$2" ] && [ -z "$3" ]; then
@@ -17,16 +18,18 @@ else
     #Check for option 4th argument to ignore lines in local and remote commands 
     if [ -z "$4" ]; then
         #login to remote system, run command, and sent output to $remote
-        ssh $1 "$2" | sort > $remote
+        ssh $1 "$2" | sort > $remote &
 
         #Run command on local system and send output to $local
-        $2 | sort > $local  
+        $2 | sort > $local & 
+        sleep $wait
     else
         #login to remote system, run command, add extra filter, and sent output to remote-diff.txt
-        ssh $1 "$2" | $4 | sort > $remote
+        ssh $1 "$2" | $4 | sort > $remote &
 
         #Run command on local system, add extra filter, and send output to local-diff.txt
-        $2 | $4 | sort > $local  
+        $2 | $4 | sort > $local &
+        sleep $wait
     fi    
 
     #check if files are identical before running diff. seems counter intuitive but most diff commands dont expliclly tell you when files are identical. 
